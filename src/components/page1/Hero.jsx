@@ -1,102 +1,82 @@
-import { Suspense, useEffect, useRef } from 'react'
-import { Canvas, useFrame } from '@react-three/fiber'
-import { AdaptiveDpr } from '@react-three/drei'
-import { EffectComposer, Bloom, Vignette } from '@react-three/postprocessing'
-import { gsap } from '../../lib/gsap'
-import { useInViewport } from '../../lib/useInViewport'
-import HeartPoints from '../three/HeartPoints'
-import Dust from '../three/Dust'
-import GoldButton from '../common/GoldButton'
-import { COUPLE } from '../../data/config'
+import { motion } from 'framer-motion'
+import { Link } from 'react-router-dom'
 import './Hero.css'
 
-/** Gentle pointer parallax on the camera (no dolly — the hero is static). */
-function Rig() {
-  useFrame((state) => {
-    const cam = state.camera
-    cam.position.x += (state.pointer.x * 0.6 - cam.position.x) * 0.04
-    cam.position.y += (state.pointer.y * 0.4 - cam.position.y) * 0.04
-    cam.lookAt(0, 0.15, 0)
-  })
-  return null
+function CharacterPlaceholder({ side, label }) {
+  return (
+    <motion.div
+      className={`hero-character hero-character-${side}`}
+      initial={{ opacity: 0, x: side === 'left' ? -42 : 42 }}
+      animate={{ opacity: 1, x: 0 }}
+      transition={{ duration: 1.25, delay: 0.55, ease: [0.22, 1, 0.36, 1] }}
+      aria-label={label}
+    >
+      <div className="character-glow" />
+      <div className="character-head">
+        <span className="character-eye character-eye-left" />
+        <span className="character-eye character-eye-right" />
+      </div>
+      <div className="character-body" />
+      <span className="character-placeholder-label">{label}</span>
+    </motion.div>
+  )
 }
 
 export default function Hero() {
-  const heroRef = useRef(null)
-  const titleRef = useRef(null)
-  const active = useInViewport(heroRef)
-
-  // The heart never explodes here — it simply forms and rotates forever.
-  const anim = useRef({ form: 0, explode: 0, camZ: 5.4 }).current
-
-  useEffect(() => {
-    const ctx = gsap.context(() => {
-      const intro = gsap.timeline({ delay: 1.7 })
-      intro
-        .to(anim, { form: 1, duration: 3.2, ease: 'power2.inOut' }, 0)
-        .fromTo(
-          '.hero-eyebrow',
-          { opacity: 0, y: 16 },
-          { opacity: 1, y: 0, duration: 1.2 },
-          1.0
-        )
-        .fromTo(
-          titleRef.current,
-          { opacity: 0, y: 26, filter: 'blur(8px)' },
-          { opacity: 1, y: 0, filter: 'blur(0px)', duration: 1.6 },
-          1.3
-        )
-        .fromTo(
-          '.hero-cta',
-          { opacity: 0, y: 22 },
-          { opacity: 1, y: 0, duration: 1.3 },
-          2.4
-        )
-    }, heroRef)
-    return () => ctx.revert()
-  }, [anim])
-
   return (
-    <section className="hero" ref={heroRef}>
-      <Canvas
-        className="hero-canvas"
-        frameloop={active ? 'always' : 'never'}
-        dpr={[1, 1.6]}
-        camera={{ position: [0, 0, 5.4], fov: 55 }}
-        gl={{ antialias: true, alpha: false, powerPreference: 'high-performance' }}
-        performance={{ min: 0.5 }}
-      >
-        <color attach="background" args={['#0a0705']} />
-        <fog attach="fog" args={['#0a0705', 6, 16]} />
-        <Suspense fallback={null}>
-          <HeartPoints anim={anim} />
-          <Dust count={220} radius={11} />
-          <Rig />
-          <EffectComposer disableNormalPass>
-            <Bloom intensity={1.15} luminanceThreshold={0.05} luminanceSmoothing={0.9} mipmapBlur radius={0.7} />
-            <Vignette eskil={false} offset={0.25} darkness={0.9} />
-          </EffectComposer>
-          <AdaptiveDpr pixelated={false} />
-        </Suspense>
-      </Canvas>
-
-      <div className="hero-overlay">
-        <div className="hero-top">
-          <p className="hero-eyebrow eyebrow">A Celebration of Forever</p>
-          <h1 className="hero-title" ref={titleRef}>
-            <span className="hero-title-line hero-title-happy">Happy Anniversary</span>
-            <span className="hero-title-line">
-              <span className="gold-text">{COUPLE.heroName}</span>
-            </span>
-          </h1>
-        </div>
-
-        <div className="hero-cta">
-          <GoldButton to="/universe" float={false}>
-            Continue Our Story
-          </GoldButton>
-        </div>
+    <section className="hero">
+      <div className="hero-ambient" aria-hidden="true">
+        <span className="ambient-orb ambient-orb-one" />
+        <span className="ambient-orb ambient-orb-two" />
+        <span className="ambient-orb ambient-orb-three" />
+        <span className="ambient-star star-one" />
+        <span className="ambient-star star-two" />
+        <span className="ambient-star star-three" />
+        <span className="ambient-star star-four" />
       </div>
+
+      <motion.div
+        className="hero-copy"
+        initial={{ opacity: 0, y: 22 }}
+        animate={{ opacity: 1, y: 0 }}
+        transition={{ duration: 1.15, delay: 0.15, ease: [0.22, 1, 0.36, 1] }}
+      >
+        <p className="hero-kicker">23 · 12 · 2016 — 23 · 12 · 2026</p>
+        <h1 className="hero-title">我们的第一个10年</h1>
+        <p className="hero-subtitle">Happy 10th Anniversary, my dearest.</p>
+      </motion.div>
+
+      <div className="hero-scene">
+        <CharacterPlaceholder side="left" label="Your character" />
+
+        <motion.div
+          className="envelope-stage"
+          initial={{ opacity: 0, scale: 0.9, y: 22 }}
+          animate={{ opacity: 1, scale: 1, y: 0 }}
+          transition={{ duration: 1.35, delay: 0.95, ease: [0.22, 1, 0.36, 1] }}
+        >
+          <div className="envelope-aura" />
+          <Link className="envelope-link" to="/universe" aria-label="Begin our story">
+            <div className="envelope">
+              <div className="envelope-back" />
+              <div className="envelope-letter">
+                <span>10</span>
+                <small>YEARS</small>
+              </div>
+              <div className="envelope-fold envelope-fold-left" />
+              <div className="envelope-fold envelope-fold-right" />
+              <div className="envelope-fold envelope-fold-bottom" />
+              <div className="envelope-flap" />
+              <div className="wax-seal">B</div>
+            </div>
+          </Link>
+          <p className="hero-cta-label">Begin our story</p>
+        </motion.div>
+
+        <CharacterPlaceholder side="right" label="Her character" />
+      </div>
+
+      <div className="hero-bottom-line" aria-hidden="true" />
     </section>
   )
 }
